@@ -1,0 +1,15 @@
+# 数据集（可由 download_data.py 重新采集生成）
+food_images/
+food_images_split/
+
+# 模型权重（可由 train_cnn.py 重新训练生成）
+models/*.pth
+
+# 上传缓存（保留目录，忽略内容）
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
