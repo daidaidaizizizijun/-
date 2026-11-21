@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>代码运行展示</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:"Consolas","Microsoft YaHei",monospace; }
+  body { background:#1e1e1e; padding:0; }
+  .ide { width:1400px; }
+  .titlebar { height:36px; background:#323233; display:flex; align-items:center; padding:0 14px; gap:8px; }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .r{background:#ff5f57;} .y{background:#febc2e;} .g{background:#28c840;}
+  .tab { margin-left:18px; background:#1e1e1e; color:#cccccc; padding:8px 18px; font-size:13px; border-radius:6px 6px 0 0; }
+  .main { display:grid; grid-template-columns:640px 1fr; gap:0; }
+  /* 代码区 */
+  .code { background:#1e1e1e; padding:16px 0; font-size:13.5px; line-height:1.55; color:#d4d4d4; }
+  .line { display:flex; }
+  .ln { width:48px; text-align:right; padding-right:16px; color:#6a6a6a; user-select:none; flex-shrink:0; }
+  .lc { white-space:pre; }
+  .kw { color:#c586c0; }
+  .fn { color:#dcdcaa; }
+  .str { color:#ce9178; }
+  .cm { color:#6a9955; }
+  .cls { color:#4ec9b0; }
+  .num { color:#b5cea8; }
+  .dec { color:#569cd6; }
+  .var { color:#9cdcfe; }
+  /* 运行区 */
+  .run { background:#252526; padding:18px; }
+  .run-label { color:#9cdcfe; font-size:13px; margin-bottom:12px; }
+  .browser { border-radius:10px; overflow:hidden; border:1px solid #3c3c3c; background:#fff; }
+  .addrbar { background:#3c3c3c; height:38px; display:flex; align-items:center; padding:0 12px; gap:8px; }
+  .addr { background:#1e1e1e; color:#cfcfcf; font-size:12px; padding:5px 12px; border-radius:14px; flex:1; }
+  .browser img { width:100%; display:block; }
+  .console { margin-top:14px; background:#1e1e1e; border:1px solid #3c3c3c; border-radius:8px; padding:12px 14px; font-size:12.5px; line-height:1.7; }
+  .console .ok { color:#4ec9b0; }
+  .console .info { color:#9cdcfe; }
+</style>
+</head>
+<body>
+<div class="ide">
+  <div class="titlebar">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <div class="tab">app.py</div>
+  </div>
+  <div class="main">
+    <div class="code" id="code"></div>
+    <div class="run">
+      <div class="run-label">▶ 运行结果（Run） · 前端识别界面</div>
+      <div class="browser">
+        <div class="addrbar">
+          <span class="dot r" style="width:10px;height:10px"></span>
+          <span class="dot y" style="width:10px;height:10px"></span>
+          <span class="dot g" style="width:10px;height:10px"></span>
+          <span class="addr">🔒 http://127.0.0.1:5000/</span>
+        </div>
+        <img src="screenshots/模型使用截图.png" alt="前端识别结果">
+      </div>
+      <div class="console">
+<span class="info">模型加载成功，类别：['主食', '水果', '海鲜', '肉类', '蔬菜']</span>
+<span class="ok"> * Running on http://127.0.0.1:5000</span>
+<span class="ok"> * 测试集准确率：92.31%</span>
+<span class="info">POST /predict 200 — 水果 100.00%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 真实 app.py 核心代码（带语法高亮）
+const raw = [
+"# 食物分类 · Flask 前端服务",
+"import os, uuid",
+"import torch",
+"import torch.nn as nn",
+"from torchvision import transforms",
+"from PIL import Image",
+"from flask import Flask, render_template, request, jsonify",
+"",
+"app = Flask(__name__)",
+"device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')",
+"",
+"class FoodCNN(nn.Module):",
+"    def __init__(self, num_classes=5):",
+"        super().__init__()",
+"        self.features = nn.Sequential(",
+"            nn.Conv2d(3, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),",
+"            nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),",
+"            nn.Conv2d(64, 128, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),",
+"            nn.Conv2d(128, 128, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2))",
+"",
+"# 加载训练好的模型",
+"checkpoint = torch.load('./models/food_cnn.pth', map_location=device)",
+"class_names = checkpoint['class_names']",
+"model = FoodCNN(len(class_names))",
+"model.load_state_dict(checkpoint['model_state_dict'])",
+"model.eval()",
+"",
+"@app.route('/predict', methods=['POST'])",
+"def predict():",
+"    file = request.files['file']",
+"    image = Image.open(file).convert('RGB')",
+"    tensor = transform(image).unsqueeze(0).to(device)",
+"    with torch.no_grad():",
+"        probs = torch.softmax(model(tensor), dim=1)[0]",
+"    confidence, idx = torch.max(probs, 0)",
+"    return jsonify(category=class_names[idx.item()],",
+"                   confidence=round(confidence.item()*100, 2))",
+"",
+"app.run(host='127.0.0.1', port=5000)",
+];
+const kws = new Set(["import","from","class","def","return","if","else","with","as","super","None","True","False"]);
+function hl(t){
+  if(t.trim().startsWith("#")) return '<span class="cm">'+t+"</span>";
+  let out="", i=0;
+  // 字符串简单处理
+  const parts=t.split(/('.*?'|".*?")/g);
+  parts.forEach(seg=>{
+    if((seg.startsWith("'")&&seg.endsWith("'"))||(seg.startsWith('"')&&seg.endsWith('"'))){
+      out+='<span class="str">'+seg+"</span>"; return;
+    }
+    seg.split(/(\b)/).forEach(w=>{
+      if(kws.has(w)) out+='<span class="kw">'+w+"</span>";
+      else out+=w;
+    });
+  });
+  return out;
+}
+const box=document.getElementById("code");
+raw.forEach((t,n)=>{
+  const line=document.createElement("div"); line.className="line";
+  line.innerHTML='<span class="ln">'+(n+1)+'</span><span class="lc">'+hl(t)+"</span>";
+  box.appendChild(line);
+});
+</script>
+</body>
+</html>
