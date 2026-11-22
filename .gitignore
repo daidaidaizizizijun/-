@@ -2,8 +2,8 @@
 food_images/
 food_images_split/
 
-# 模型权重（可由 train_cnn.py 重新训练生成）
-models/*.pth
+# 模型权重（已随仓库提交，便于免训练直接运行识别）
+# models/*.pth
 
 # 上传缓存（保留目录，忽略内容）
 static/uploads/*
