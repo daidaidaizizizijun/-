@@ -3,125 +3,291 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>食物智能分类系统</title>
+<title>食光小课堂 · 食物智能分类</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; }
+  :root {
+    --ink: #2f2a3a;
+    --ink-soft: #6b6478;
+    --cream: #fdf8f2;
+    --brand: #ff8a5b;
+    --brand-deep: #f26b3a;
+    --brand-soft: #fff0e8;
+    --radius-lg: 28px;
+    --radius-md: 20px;
+    --shadow: 0 18px 40px rgba(80, 60, 40, 0.12);
+    --shadow-soft: 0 10px 26px rgba(80, 60, 40, 0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
+    font-family: "Microsoft YaHei UI", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 12% 8%, #ffe7d6 0%, transparent 42%),
+      radial-gradient(circle at 88% 16%, #fff1d6 0%, transparent 40%),
+      radial-gradient(circle at 50% 100%, #ffe0e0 0%, transparent 45%),
+      var(--cream);
     min-height: 100vh;
-    background: linear-gradient(135deg, #ff9966 0%, #ff5e62 50%, #f7971e 100%);
-    padding: 32px 20px;
+    padding: 40px 22px 56px;
+    overflow-x: hidden;
   }
-  .container { max-width: 1080px; margin: 0 auto; }
-  .header { text-align: center; color: #fff; margin-bottom: 28px; }
-  .header h1 { font-size: 34px; letter-spacing: 2px; text-shadow: 0 2px 8px rgba(0,0,0,.18); }
-  .header p { margin-top: 10px; font-size: 15px; opacity: .95; }
-  .tags { margin-top: 14px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-  .tags span {
-    background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.45);
-    padding: 5px 16px; border-radius: 20px; font-size: 13px; color: #fff;
+  .container { max-width: 1120px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* ---------- 漂浮装饰 ---------- */
+  .float-deco { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .float-deco span {
+    position: absolute; font-size: 34px; opacity: .55;
+    animation: floaty 6s ease-in-out infinite;
+    filter: drop-shadow(0 8px 14px rgba(120, 70, 40, .15));
   }
-  .panel {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  .float-deco span:nth-child(1) { left: 6%;  top: 18%; animation-delay: 0s; }
+  .float-deco span:nth-child(2) { left: 12%; top: 72%; font-size: 28px; animation-delay: 1.2s; }
+  .float-deco span:nth-child(3) { right: 8%; top: 24%; font-size: 40px; animation-delay: .6s; }
+  .float-deco span:nth-child(4) { right: 14%; top: 76%; font-size: 30px; animation-delay: 1.8s; }
+  .float-deco span:nth-child(5) { left: 46%; top: 6%;  font-size: 26px; animation-delay: 2.4s; }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0) rotate(-6deg); }
+    50%      { transform: translateY(-18px) rotate(8deg); }
   }
+
+  /* ---------- Hero ---------- */
+  .hero { text-align: center; margin-bottom: 34px; }
+  .hero .badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #fff; color: var(--brand-deep);
+    padding: 8px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: bold;
+    box-shadow: var(--shadow-soft); margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: 1px;
+    line-height: 1.2;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(120deg, var(--brand) 0%, var(--brand-deep) 55%, #ff9f43 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { margin-top: 12px; color: var(--ink-soft); font-size: 15px; }
+  .chips { margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: #fff; border-radius: 999px; padding: 9px 18px;
+    font-size: 14px; font-weight: bold;
+    box-shadow: var(--shadow-soft);
+    border: 2px solid transparent;
+  }
+  .chip .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ---------- 面板 ---------- */
+  .panel { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
   .card {
-    background: #fff; border-radius: 18px; padding: 26px;
-    box-shadow: 0 12px 34px rgba(120,40,0,.18);
+    background: rgba(255, 255, 255, .92);
+    border: 1px solid rgba(255, 255, 255, .8);
+    border-radius: var(--radius-lg); padding: 30px 28px;
+    box-shadow: var(--shadow);
   }
-  .card h2 { font-size: 18px; color: #444; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
-  .card h2::before { content: ""; width: 6px; height: 20px; border-radius: 3px; background: linear-gradient(#ff9966,#ff5e62); }
+  .card-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 19px; font-weight: 800; margin-bottom: 22px;
+  }
+  .card-title .mark {
+    width: 34px; height: 34px; border-radius: 12px;
+    display: grid; place-items: center; font-size: 18px;
+    background: var(--brand-soft);
+  }
+
+  /* ---------- 上传区 ---------- */
   .drop-zone {
-    border: 2px dashed #ffb48f; border-radius: 14px; padding: 34px 18px;
-    text-align: center; color: #b5704a; cursor: pointer; transition: .2s;
-    background: #fff8f3;
+    border: 2.5px dashed #ffc4a8; border-radius: var(--radius-md);
+    padding: 42px 20px; text-align: center; cursor: pointer;
+    background: var(--brand-soft);
+    transition: border-color .2s, background .2s, transform .2s;
   }
-  .drop-zone:hover, .drop-zone.drag { background: #fff0e6; border-color: #ff7a3d; }
-  .drop-zone .icon { font-size: 42px; }
-  .drop-zone p { margin-top: 10px; font-size: 14px; }
-  .drop-zone .hint { font-size: 12px; color: #c9a08a; margin-top: 6px; }
+  .drop-zone:hover, .drop-zone.drag {
+    background: #ffe7d8; border-color: var(--brand-deep); transform: translateY(-2px);
+  }
+  .drop-zone .big-icon {
+    width: 74px; height: 74px; margin: 0 auto 14px;
+    display: grid; place-items: center; font-size: 38px;
+    background: #fff; border-radius: 24px;
+    box-shadow: 0 10px 22px rgba(242, 107, 58, .18);
+  }
+  .drop-zone p { font-size: 15px; font-weight: bold; color: var(--ink); }
+  .drop-zone .hint { margin-top: 8px; font-size: 12.5px; color: var(--ink-soft); font-weight: normal; }
   #fileInput { display: none; }
-  .preview { margin-top: 16px; text-align: center; display: none; }
-  .preview img { max-width: 100%; max-height: 230px; border-radius: 12px; box-shadow: 0 6px 18px rgba(0,0,0,.12); }
+
+  .preview { margin-top: 18px; display: none; text-align: center; }
+  .preview img {
+    max-width: 100%; max-height: 240px; border-radius: var(--radius-md);
+    box-shadow: 0 12px 26px rgba(80, 60, 40, .16);
+  }
   .btn {
-    width: 100%; margin-top: 18px; border: none; padding: 14px; border-radius: 12px;
-    font-size: 16px; font-weight: bold; color: #fff; cursor: pointer;
-    background: linear-gradient(135deg,#ff9966,#ff5e62);
-    box-shadow: 0 6px 16px rgba(255,94,98,.35); transition: .15s;
+    width: 100%; margin-top: 20px; border: none;
+    padding: 15px; border-radius: 16px;
+    font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
+    background: linear-gradient(135deg, var(--brand), var(--brand-deep));
+    box-shadow: 0 10px 22px rgba(242, 107, 58, .32);
+    transition: transform .15s, box-shadow .15s;
   }
-  .btn:hover { transform: translateY(-2px); }
-  .btn:disabled { background: #ddd; cursor: not-allowed; box-shadow: none; transform: none; }
-  .result-empty { text-align: center; color: #bbb; padding: 60px 0; font-size: 14px; }
-  .result-empty .big { font-size: 46px; margin-bottom: 12px; }
-  #result { display: none; }
-  .result-cat {
-    text-align: center; background: linear-gradient(135deg,#fff4ee,#ffe9dc);
-    border-radius: 14px; padding: 22px; margin-bottom: 18px;
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 26px rgba(242, 107, 58, .4); }
+  .btn:active { transform: translateY(0); }
+  .btn.ghost {
+    background: #fff; color: var(--brand-deep);
+    box-shadow: none; border: 2px solid #ffd3bd;
   }
-  .result-cat .label { font-size: 13px; color: #b5704a; }
-  .result-cat .cat { font-size: 34px; font-weight: bold; color: #ff5e62; margin: 6px 0; }
-  .result-cat .conf { font-size: 14px; color: #777; }
-  .bar-row { margin-bottom: 14px; }
-  .bar-row .top { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 5px; }
-  .bar-bg { height: 10px; background: #f0e6e0; border-radius: 6px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg,#ffb48f,#ff5e62); width: 0; transition: width .8s ease; }
-  .loading { text-align: center; color: #ff7a3d; font-size: 14px; padding: 30px 0; display: none; }
-  .error { color: #e53935; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
-  @media (max-width: 760px) { .panel { grid-template-columns: 1fr; } }
+  .btn:disabled { background: #e3ddd6; box-shadow: none; cursor: not-allowed; transform: none; }
+
+  .loading { display: none; text-align: center; padding: 26px 0; color: var(--brand-deep); font-weight: bold; font-size: 14.5px; }
+  .loading .bounce { display: inline-flex; gap: 6px; margin-bottom: 10px; }
+  .loading .bounce i {
+    width: 12px; height: 12px; border-radius: 50%; background: var(--brand);
+    animation: bounce 1s infinite ease-in-out;
+  }
+  .loading .bounce i:nth-child(2) { animation-delay: .15s; background: var(--brand-deep); }
+  .loading .bounce i:nth-child(3) { animation-delay: .3s; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .error-box {
+    display: none; margin-top: 16px; padding: 14px 18px;
+    background: #fdecea; color: #c0392b; border-radius: 14px;
+    font-size: 13.5px; font-weight: bold; text-align: center;
+  }
+
+  /* ---------- 结果区 ---------- */
+  .result-empty { text-align: center; color: var(--ink-soft); padding: 52px 0; }
+  .result-empty .big { font-size: 56px; margin-bottom: 14px; animation: floaty 5s ease-in-out infinite; }
+  .result-empty p { font-size: 14px; }
+  #result { display: none; animation: pop .45s ease both; }
+  @keyframes pop { from { opacity: 0; transform: scale(.94) translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .result-hero {
+    border-radius: var(--radius-md); padding: 26px 22px; text-align: center;
+    margin-bottom: 22px;
+  }
+  .result-hero .r-label { font-size: 13px; font-weight: bold; color: var(--ink-soft); }
+  .result-hero .r-emoji { font-size: 52px; margin: 8px 0 4px; }
+  .result-hero .r-cat { font-size: 32px; font-weight: 800; }
+  .result-hero .r-conf {
+    display: inline-block; margin-top: 12px;
+    background: rgba(255, 255, 255, .85); border-radius: 999px;
+    padding: 7px 18px; font-size: 14px; font-weight: 800;
+  }
+  .result-hero .r-tip { margin-top: 10px; font-size: 12.5px; font-weight: bold; }
+
+  .bar-row { margin-bottom: 15px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-row .top { display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; font-weight: bold; margin-bottom: 7px; }
+  .bar-row .top .name { display: inline-flex; align-items: center; gap: 6px; }
+  .bar-bg { height: 12px; background: #f3ece5; border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; width: 0; border-radius: 999px; transition: width .9s cubic-bezier(.22, 1, .36, 1); }
+
+  .result-thumb { margin-top: 22px; text-align: center; }
+  .result-thumb img {
+    max-width: 100%; max-height: 200px; border-radius: var(--radius-md);
+    box-shadow: 0 10px 22px rgba(80, 60, 40, .14);
+  }
+
+  .footer { text-align: center; margin-top: 34px; color: var(--ink-soft); font-size: 12.5px; }
+
+  @media (max-width: 820px) {
+    body { padding: 28px 16px 44px; }
+    .panel { grid-template-columns: 1fr; gap: 20px; }
+    .card { padding: 24px 20px; }
+  }
 </style>
 </head>
 <body>
+<div class="float-deco">
+  <span>🍚</span><span>🥦</span><span>🍎</span><span>🦐</span><span>🍖</span>
+</div>
+
 <div class="container">
-  <div class="header">
-    <h1>🍽 食物智能分类系统</h1>
-    <p>基于 PyTorch 卷积神经网络 · 上传图片即可自动识别食物类别</p>
-    <div class="tags">
-      {% for c in categories %}<span>{{ c }}</span>{% endfor %}
-    </div>
-  </div>
+  <!-- Hero -->
+  <header class="hero">
+    <span class="badge">🧠 PyTorch CNN 深度学习驱动</span>
+    <h1>食光小课堂 · <span class="grad">食物智能分类</span></h1>
+    <p>拍一张照片，AI 小助手马上告诉你它属于哪一类食物</p>
+    <div class="chips" id="chips"></div>
+  </header>
 
   <div class="panel">
-    <!-- 上传区 -->
-    <div class="card">
-      <h2>上传图片</h2>
+    <!-- 上传卡 -->
+    <section class="card">
+      <div class="card-title"><span class="mark">📷</span>上传食物照片</div>
       <div class="drop-zone" id="dropZone">
-        <div class="icon">📷</div>
-        <p>点击选择图片，或将图片拖拽到此处</p>
-        <div class="hint">支持 JPG / PNG / BMP 格式</div>
+        <div class="big-icon">🖼️</div>
+        <p>点击选图，或把图片拖到这里</p>
+        <div class="hint">支持 JPG / PNG / BMP 等常见图片格式</div>
       </div>
       <input type="file" id="fileInput" accept="image/*">
-      <div class="preview" id="preview"><img id="previewImg" alt="预览"></div>
-      <button class="btn" id="submitBtn" disabled>开始识别</button>
-      <div class="loading" id="loading">🔍 正在识别中，请稍候...</div>
-      <div class="error" id="error"></div>
-    </div>
+      <div class="preview" id="preview"><img id="previewImg" alt="预览图"></div>
+      <button class="btn" id="submitBtn" disabled>✨ 开始识别</button>
+      <button class="btn ghost" id="resetBtn" style="display:none;">🔄 换一张试试</button>
+      <div class="loading" id="loading">
+        <div class="bounce"><i></i><i></i><i></i></div>
+        正在认真辨认中，请稍候…
+      </div>
+      <div class="error-box" id="errorBox"></div>
+    </section>
 
-    <!-- 结果区 -->
-    <div class="card">
-      <h2>识别结果</h2>
+    <!-- 结果卡 -->
+    <section class="card">
+      <div class="card-title"><span class="mark">🏆</span>识别结果</div>
       <div class="result-empty" id="empty">
         <div class="big">🥗</div>
-        <p>上传图片后，识别结果将显示在这里</p>
+        <p>识别结果会出现在这里，期待你的第一张照片～</p>
       </div>
       <div id="result">
-        <div class="result-cat">
-          <div class="label">预测类别</div>
-          <div class="cat" id="catName">—</div>
-          <div class="conf">置信度：<span id="confVal">0</span>%</div>
+        <div class="result-hero" id="resultHero">
+          <div class="r-label">预测类别</div>
+          <div class="r-emoji" id="rEmoji">🍽️</div>
+          <div class="r-cat" id="catName">—</div>
+          <div class="r-conf" id="confVal">置信度 0%</div>
+          <div class="r-tip" id="rTip"></div>
         </div>
         <div id="probBars"></div>
+        <div class="result-thumb"><img id="resultImg" alt="识别图片"></div>
       </div>
-    </div>
+    </section>
   </div>
+
+  <p class="footer">食光小课堂 · 基于卷积神经网络的食物图像分类实验项目</p>
 </div>
 
 <script>
-  const dropZone = document.getElementById('dropZone');
+  // 后端注入的类别（Jinja）
+  const CATEGORIES = {{ categories|tojson }};
+
+  // 每类食物的主题色与图标
+  const META = {
+    '主食': { emoji: '🍚', color: '#f5a623', bg: '#fff4dd' },
+    '水果': { emoji: '🍎', color: '#ff6b6b', bg: '#ffe9e9' },
+    '肉类': { emoji: '🍖', color: '#c0504d', bg: '#fbe4e1' },
+    '蔬菜': { emoji: '🥦', color: '#43a047', bg: '#e6f5e7' },
+    '海鲜': { emoji: '🦀', color: '#ff7043', bg: '#ffece5' }
+  };
+  const FALLBACK = { emoji: '🍽️', color: '#ff8a5b', bg: '#fff0e8' };
+  const metaOf = name => META[name] || { ...FALLBACK };
+
+  // 顶部类别 chips
+  const chips = document.getElementById('chips');
+  CATEGORIES.forEach(c => {
+    const m = metaOf(c);
+    const el = document.createElement('span');
+    el.className = 'chip';
+    el.innerHTML = `<span class="dot" style="background:${m.color}"></span>${m.emoji} ${c}`;
+    chips.appendChild(el);
+  });
+
+  const dropZone  = document.getElementById('dropZone');
   const fileInput = document.getElementById('fileInput');
-  const preview = document.getElementById('preview');
+  const preview   = document.getElementById('preview');
   const previewImg = document.getElementById('previewImg');
   const submitBtn = document.getElementById('submitBtn');
-  const loading = document.getElementById('loading');
-  const errorBox = document.getElementById('error');
-  const empty = document.getElementById('empty');
+  const resetBtn  = document.getElementById('resetBtn');
+  const loading   = document.getElementById('loading');
+  const errorBox  = document.getElementById('errorBox');
+  const empty     = document.getElementById('empty');
   const resultBox = document.getElementById('result');
   let selectedFile = null;
 
@@ -129,59 +295,111 @@
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
   dropZone.addEventListener('drop', e => {
-    e.preventDefault(); dropZone.classList.remove('drag');
+    e.preventDefault();
+    dropZone.classList.remove('drag');
     if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
   });
   fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+
+  function showError(msg) {
+    errorBox.textContent = '⚠️ ' + msg;
+    errorBox.style.display = 'block';
+  }
 
   function handleFile(file) {
     if (!file.type.startsWith('image/')) { showError('请选择有效的图片文件'); return; }
     selectedFile = file;
     const reader = new FileReader();
-    reader.onload = e => { previewImg.src = e.target.result; preview.style.display = 'block'; };
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      preview.style.display = 'block';
+    };
     reader.readAsDataURL(file);
     submitBtn.disabled = false;
     errorBox.style.display = 'none';
   }
 
-  function showError(msg) { errorBox.textContent = msg; errorBox.style.display = 'block'; }
+  submitBtn.addEventListener('click', doPredict);
 
-  submitBtn.addEventListener('click', () => {
+  resetBtn.addEventListener('click', () => {
+    selectedFile = null;
+    fileInput.value = '';
+    preview.style.display = 'none';
+    resultBox.style.display = 'none';
+    empty.style.display = 'block';
+    submitBtn.style.display = 'block';
+    resetBtn.style.display = 'none';
+    submitBtn.disabled = true;
+    errorBox.style.display = 'none';
+    dropZone.click();
+  });
+
+  function doPredict() {
     if (!selectedFile) return;
     const fd = new FormData();
     fd.append('file', selectedFile);
     loading.style.display = 'block';
     submitBtn.disabled = true;
     errorBox.style.display = 'none';
+
     fetch('/predict', { method: 'POST', body: fd })
       .then(r => r.json())
       .then(data => {
         loading.style.display = 'none';
         submitBtn.disabled = false;
         if (data.error) { showError(data.error); return; }
+
         empty.style.display = 'none';
         resultBox.style.display = 'block';
+        // 重新触发入场动画
+        resultBox.style.animation = 'none';
+        void resultBox.offsetWidth;
+        resultBox.style.animation = '';
+
+        const m = metaOf(data.category);
+        document.getElementById('rEmoji').textContent = m.emoji;
         document.getElementById('catName').textContent = data.category;
-        document.getElementById('confVal').textContent = data.confidence;
+        document.getElementById('confVal').textContent = '置信度 ' + data.confidence + '%';
+        const tip = document.getElementById('rTip');
+        if (data.confidence < 80) {
+          tip.textContent = '🤏 把握度不高，建议换个角度或光线再拍一张';
+          tip.style.color = '#e08a2e';
+        } else {
+          tip.textContent = '🎉 辨认成功！';
+          tip.style.color = m.color;
+        }
+        const hero = document.getElementById('resultHero');
+        hero.style.background = m.bg;
+        document.getElementById('confVal').style.color = m.color;
+
         const bars = document.getElementById('probBars');
         bars.innerHTML = '';
         data.probs.forEach(item => {
+          const im = metaOf(item.name);
           const row = document.createElement('div');
           row.className = 'bar-row';
-          row.innerHTML = `<div class="top"><span>${item.name}</span><span>${item.prob}%</span></div>
-            <div class="bar-bg"><div class="bar-fill" data-w="${item.prob}"></div></div>`;
+          row.innerHTML =
+            '<div class="top"><span class="name">' + im.emoji + ' ' + item.name + '</span>' +
+            '<span>' + item.prob + '%</span></div>' +
+            '<div class="bar-bg"><div class="bar-fill" style="background:' + im.color +
+            '" data-w="' + item.prob + '"></div></div>';
           bars.appendChild(row);
         });
         setTimeout(() => {
-          document.querySelectorAll('.bar-fill').forEach(b => b.style.width = b.dataset.w + '%');
-        }, 80);
+          document.querySelectorAll('.bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+        }, 90);
+
+        if (data.image_url) document.getElementById('resultImg').src = data.image_url;
+
+        submitBtn.style.display = 'none';
+        resetBtn.style.display = 'block';
       })
       .catch(err => {
         loading.style.display = 'none';
         submitBtn.disabled = false;
         showError('网络请求失败：' + err.message);
       });
-  });
+  }
 </script>
 </body>
 </html>
